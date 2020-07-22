@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+  <title>Fridge management service</title>
+
+  <!-- CSS  -->
+  <script type="text/javascript" src="./js/LabelPrintAPI-1.1.0.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="./css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+  <link href="./css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+</head>
+
+
+<script>
+  var dtPrinter = new LPAPI();
+  window.onload = function () { // 填充支持的打印机列表到下拉选择框
+      updatePrinterList();
+  };
+
+  /**
+* 更新打印机列表。
+*/
+  function updatePrinterList() {
+      var printerNames = dtPrinter.getSupportedPrinters();
+      var printerElements = document.getElementById("select-printlist");
+      printerElements.innerHTML = "";
+      if (! printerNames) {
+          printerElements.options.add(new Option("未检测到打印机", ""));
+          return;
+      }
+
+      var printerList = printerNames.split(',');
+      for (var i = 0; i < printerList.length; i++) {
+          var item = printerList[i];
+          printerElements.options.add(new Option(item, item));
+      }
+      // 获取当前打印机的相关打印参数；
+      onPrintSelected();
+  }
+
+  /**
+* 获取当前打印机的纸张类型；
+* 打印机打开成功后调用有效；
+*/
+  function updateGapType() {
+      if (!openPrinter()) 
+          return;
+      
+
+      var gapTypeSelect = document.getElementById("select-gaptype");
+      gapTypeSelect.value = dtPrinter.getGapType();
+  }
+
+  /**
+* 修改当前打印机的纸张类型；
+* 打印机打开成功后调用有效；
+*/
+  function setGapType() {
+      if (!openPrinter()) 
+          return;
+      
+
+      var gapTypeSelect = document.getElementById("select-gaptype");
+      dtPrinter.setGapType(gapTypeSelect.value);
+  }
+
+  /**
+* 获取当前打印机的打印速度；
+* 打印机打开成功后调用有效；
+*/
+  function updatePrintSpeed() {
+      if (!openPrinter()) 
+          return;
+      
+
+      var printSpeed = document.getElementById("select-printspeed");
+      printSpeed.value = dtPrinter.getPrintSpeed();
+  }
+
+  /**
+* 修改当前打印机的打印速度；
+* 打印机打开成功后调用有效；
+*/
+  function setPrintSpeed() {
+      if (!openPrinter()) 
+          return;
+      
+
+      var printSpeed = document.getElementById("select-printspeed");
+      dtPrinter.setPrintSpeed(printSpeed.value);
+  }
+
+  /**
+* 更新当前打印机的打印浓度；
+* 打印机打开成功后调用有效；
+*/
+  function updatePrintDarkness() {
+      if (!openPrinter()) 
+          return;
+      
+
+      var printDarkness = document.getElementById("select-printdarkness");
+      printDarkness.value = dtPrinter.getPrintDarkness();
+  }
+
+  /**
+* 修改当前选中打印机的打印浓度；
+* 打印机打开成功后调用有效；
+*/
+  function setPrintDarkness() {
+      if (!openPrinter()) 
+          return;
+      
+
+      var printDarkness = document.getElementById("select-printdarkness");
+      dtPrinter.setPrintDarkness(printDarkness.value);
+  }
+
+  /**
+* 当打印机更新后，同步的更新当前打印机的相关打印参数；
+*/
+  function onPrintSelected() {
+      updateGapType();
+      updatePrintSpeed();
+      updatePrintDarkness();
+  }
+
+  function onGapTypeSelected() {
+      setGapType();
+  }
+
+  function onPrintSpeedSelected() {
+      setPrintSpeed();
+  }
+
+  function onPrintDarknessSelected() {
+      setPrintDarkness();
+  }
+
+  /**
+* 打开打印机。
+*/
+  function openPrinter() {
+      var printerElement = document.getElementById("select-printlist");
+
+      if (! printerElement.value) {
+          updatePrinterList();
+      }
+      if (! printerElement.value) 
+          return false;
+      
+
+      return dtPrinter.openPrinter(printerElement.value);
+  }
+
+  /**
+* 打印线条相关对象。
+*/
+  function printLine() {
+      if (! openPrinter()) 
+          return;
+      
+
+      var width = 45;
+      var lineSpace = 5;
+      var height = lineSpace * 4;
+
+      // 创建打印任务
+      dtPrinter.startJob(width, height, 0);
+      // 打印直线
+      dtPrinter.drawLine(0, lineSpace * 1, width, lineSpace * 1, 1);
+      // 打印虚线1
+      dtPrinter.drawDashLine2(0, lineSpace * 2, width, lineSpace * 2, 1, 0.5, 0.25);
+      // 打印虚线2
+      dtPrinter.drawDashLine4(0, lineSpace * 3, width, lineSpace * 3, 1, 0.5, 0.25, 0.5, 0.5);
+      // 提交打印任务
+      dtPrinter.commitJob();
+  }
+
+  /**
+* 打印矩形框相关对象。
+*/
+  function printRectangle() {
+      if (! openPrinter()) 
+          return;
+      
+
+      var width = 45;
+      var height = 30;
+
+      // 创建打印任务
+      dtPrinter.startJob(width, height);
+
+      // 第一页，打印矩形框
+      dtPrinter.startPage();
+      dtPrinter.drawRectangle(0, 0, width, height, 0.5);
+      dtPrinter.endPage();
+
+      // 第二页, 打印填充矩形框
+      dtPrinter.startPage();
+      dtPrinter.fillRectangle(0, 0, width, height);
+      dtPrinter.endPage();
+
+      // 第三页，打印圆角矩形框
+      dtPrinter.startPage();
+      dtPrinter.drawRoundRectangle(0, 0, width, height, 2.0, 2.0, 0.5);
+      dtPrinter.endPage();
+
+      // 第四页，打印填充圆角矩形
+      dtPrinter.startPage();
+      dtPrinter.fillRoundRectangle(0, 0, width, height, 2.0, 2.0);
+      dtPrinter.endPage();
+
+      // 提交打印任务
+      dtPrinter.commitJob();
+  }
+
+  /**
+* 打印椭圆相关对象。
+*/
+  function printEllipse() {
+      if (! openPrinter()) 
+          return;
+      
+
+      var width = 45;
+      var height = 30;
+
+      // 创建打印任务。
+      dtPrinter.startJob(width, height);
+
+      // 第一页,打印椭圆边框
+      dtPrinter.startPage();
+      dtPrinter.drawEllipse(0, 0, width, height, 0.5);
+      dtPrinter.endPage();
+
+      // 第二页，打印填充椭圆
+      dtPrinter.startPage();
+      dtPrinter.fillEllipse(0, 0, width, height);
+      dtPrinter.endPage();
+
+      // 提交打印任务。
+      dtPrinter.commitJob();
+  }
+
+  /**
+* 打印文本相关对象。
+*/
+  function printText() {
+
+      var name = document.getElementById("icon_prefix").value;
+      var room = document.getElementById("icon_room").value;
+      var time = document.getElementById("icon_time").value;
+      var tele = document.getElementById("icon_telephone").value;
+
+      if (! openPrinter()) 
+                    return;
+                
+
+                var width = 40.000;
+                var height = 30.000;
+                var orientation = 0;
+                var itemHeight = height / 6;
+                var fontHeight = 0;
+                var text = "上海道臻信息技术有限公司";
+
+                dtPrinter.startJob(width, height, orientation);
+
+                dtPrinter.setItemHorizontalAlignment(1);
+                dtPrinter.drawText(name, 0, itemHeight * 1, width, itemHeight, null, fontHeight, 0);
+                dtPrinter.setItemHorizontalAlignment(1);
+                dtPrinter.drawText(room, 0, itemHeight * 2, width, itemHeight, null, fontHeight, 1);
+                dtPrinter.setItemHorizontalAlignment(1);
+                dtPrinter.drawText(time, 0, itemHeight * 3, width, itemHeight, null, fontHeight, 2);
+                dtPrinter.setItemHorizontalAlignment(1);
+                dtPrinter.drawText(tele, 0, itemHeight * 4, width, itemHeight, null, fontHeight, 2);
+
+                // 结束打印任务
+                dtPrinter.commitJob();
+  }
+
+  /**
+* 绘制一维码。
+*/
+  /*function printBarcode() {
+  if (!openPrinter()) return;
+
+  var width = 45;
+  var height = 30;
+  var text = "1234567890";
+  var margin = 5;
+
+  dtPrinter.startJob(width, height);
+  dtPrinter.draw1DBarcode(text, 0, margin, margin, width - margin * 2, height - margin * 2, 5);
+  dtPrinter.commitJob();
+}*/
+  function printBarcode() {
+      if (! openPrinter()) 
+          return;
+      
+
+
+      var width = 45;
+      var height = 30;
+      var text = "2019533082";
+      var margin = 5;
+
+      dtPrinter.startJob(width, height);
+      dtPrinter.draw1DBarcode(text, 0, margin, margin, width - margin * 2, height - margin * 2, 5);
+
+
+      var width = 80;
+      var height = 45;
+      var orientation = 90;
+      var itemHeight = height / 3;
+      var fontHeight = 5;
+      var text = "";
+
+      dtPrinter.setItemHorizontalAlignment(0);
+      dtPrinter.drawText(text, 0, itemHeight * 2, width, itemHeight, null, fontHeight, 0);
+
+      dtPrinter.commitJob();
+  }
+
+  /**
+* 绘制二维码。
+*/
+  function printQRCode() {
+      if (! openPrinter()) 
+          return;
+      
+
+      var width = 45;
+      var height = 45;
+      var margin = 5;
+      var text = "上海道臻信息技术有限公司";
+
+      dtPrinter.startJob(width, height);
+      dtPrinter.draw2DQRCode(text, margin, margin, width - margin * 2);
+      dtPrinter.commitJob();
+  }
+
+  /**
+* 打印PDF417。
+*/
+  function printPDF417() {
+      if (! openPrinter()) 
+          return;
+      
+
+      var width = 45;
+      var height = 30;
+      var text = "上海道臻信息技术有限公司";
+      var margin = 5;
+
+      dtPrinter.startJob(width, height);
+      dtPrinter.draw2DPdf417(text, margin, margin, width - margin * 2, height - margin * 2);
+      dtPrinter.commitJob();
+  }
+
+  /**
+* 打印网络图片。
+*/
+  function printImage() {
+      if (! openPrinter()) 
+          return;
+      
+
+      var width = 45;
+      var height = 30;
+      var url = "http://www.baidu.com/img/baidu_jgylogo3.gif";
+      var margin = 5;
+
+      dtPrinter.startJob(width, height);
+      dtPrinter.drawImage(url, margin, margin, width - margin * 2, height - margin * 2);
+      dtPrinter.commitJob();
+  }
+</script>
+
+
+
+<body>
+  <div class="label-operate-group" style=display:none>
+    <label class="label-operate-item-title">打印机</label>
+    <select class="label-operate-item-value" id="select-printlist" onchange="onPrintSelected()"></select>
+</div>
+<div class="label-operate-group" style=display:none>
+    <label class="label-operate-item-title" for="select-gaptype">纸张类型：</label>
+    <select class="label-operate-item-value" id="select-gaptype" onchange="onGapTypeSelected()">
+        <option value="255">随打印机</option>
+        <option value="0">连续纸</option>
+        <option value="1">定位孔</option>
+        <option value="2">间隙纸</option>
+    </select>
+</div>
+<div class="label-operate-group" style=display:none>
+    <label class="label-operate-item-title" for="select-printspeed">打印速度：</label>
+    <select class="label-operate-item-value" id="select-printspeed" onchange="onPrintSpeedSelected()">
+        <option value="255">随打印机</option>
+        <option value="0">1(特慢)</option>
+        <option value="1">2(慢)</option>
+        <option value="2">3(正常)</option>
+        <option value="3">4(快)</option>
+        <option value="4">5(特快)</option>
+    </select>
+</div>
+<div class="label-operate-group" style=display:none>
+    <label class="label-operate-item-title" for="select-printdarkness">打印浓度</label>
+    <select class="label-operate-item-value" id="select-printdarkness" onchange="onPrintDarknessSelected()">
+        <option value="255">随打印机</option>
+        <option value="5">6(正常)</option>
+        <option value="6">7</option>
+        <option value="7">8</option>
+        <option value="8">9</option>
+        <option value="9">10(较浓)</option>
+        <option value="10">11</option>
+        <option value="11">12</option>
+        <option value="12">13</option>
+        <option value="13">14</option>
+        <option value="14">15(特浓)</option>
+    </select>
+</div>
+
+
+  
+  <nav class="light-blue lighten-1" role="navigation">
+    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">FRIDGE</a>
+      <ul class="right hide-on-med-and-down">
+        <li><a href="#">admin</a></li>
+      </ul>
+
+      <ul id="nav-mobile" class="side-nav">
+        <li><a href="#">admin</a></li>
+      </ul>
+      <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
+    </div>
+  </nav>
+  <div class="section no-pad-bot" id="index-banner">
+    <div class="container">
+      <br><br>
+      <h1 class="header center orange-text">标签打印</h1>
+      <div class="row center">
+        <h5 class="header col s12 light">请按下打印按钮，并在下面的提示框中输入信息即可。</h5>
+      </div>
+      <div class="row center">
+        <div class="row">
+          <form class="col s12">
+            <div class="row">
+              <div class="input-field col s6">
+                <i class="material-icons prefix">account_circle</i>
+                <input id="icon_prefix" type="text" class="validate">
+                <label for="icon_prefix">姓名</label>
+              </div>
+              <div class="input-field col s6">
+                <i class="material-icons prefix">recent_actors</i>
+                <input id="icon_room" type="tel" class="validate">
+                <label for="icon_room">寝室号</label>
+              </div>
+            </div>
+          </form>
+          <form class="col s12">
+            <div class="row">
+              <div class="input-field col s6">
+                <i class="material-icons prefix">today</i>
+                <input id="icon_time" type="date" class="datepicker">
+                <label for="icon_time">预计存放时间</label>
+              </div>
+              <div class="input-field col s6">
+                <i class="material-icons prefix">phone</i>
+                <input id="icon_telephone" type="tel" class="validate">
+                <label for="icon_telephone">联系方式(可选)</label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <a href="#" id="download-button" class="btn-large waves-effect waves-light orange" onclick="printText()">Print</a>
+        <!-- <input type="button" value="打印文本" onclick="printText()"/> -->
+      <br><br>
+
+    </div>
+  </div>
+
+
+  <div class="container">
+    <div class="section">
+
+
+    </div>
+    <br><br>
+
+    <div class="section">
+
+    </div>
+  </div>
+
+  <footer class="page-footer orange">
+    <div class="container">
+      <div class="row">
+        <div class="col l6 s12">
+          <h5 class="white-text">我们的宗旨</h5>
+          <p class="grey-text text-lighten-4">多一事不如少一事</p>
+
+          <p class="grey-text text-lighten-4">多一事不如少一事</p>
+
+          <p class="grey-text text-lighten-4">不要好心办坏事</p>
+
+
+        </div>
+        <div class="col l3 s12">
+          <!-- <h5 class="white-text">Settings</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul> -->
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Connect</h5>
+          <ul>
+            <li><a class="white-text" href="#!">2019级新生群</a></li>
+            <li><a class="white-text" href="#!">公共服务处</a></li>
+            <li><a class="white-text" href="#!">团委</a></li>
+            <li><a class="white-text" href="https://www.geekpie.club">GeekPie Association</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright">
+      <div class="container">
+        Made by <a class="orange-text text-lighten-3" href="http://materializecss.com">Materialize</a> and Modified by
+        <a class="orange-text text-lighten-3" href="https://github.com/nyovelt">nyovelt</a> 
+        Version: 2020/7/22.2
+      </div>
+    </div>
+  </footer>
+
+
+  <!--  Scripts-->
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="./js/materialize.js"></script>
+  <script src="./js/init.js"></script>
+</body>
+
+
+
+
+</html>
